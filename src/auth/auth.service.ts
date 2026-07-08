@@ -1,8 +1,10 @@
+import 'dotenv/config';
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { SignupDto } from './dto/signup.dto';
 import * as bcrypt from 'bcrypt';
 import { PrismaPg } from '@prisma/adapter-pg';
-import { PrismaClient } from '../../prisma/generated/client';
+import { PrismaClient } from '@prisma/client';
+import { LoginDto } from './dto/login.dto';
 
 const adapter = new PrismaPg({
   connectionString: process.env.DATABASE_URL,
@@ -24,7 +26,7 @@ export class AuthService {
     }
 
     const hashedPassword = await bcrypt.hash(signupDto.password, 10);
-    return this.prisma.user.create({
+    const user=await this.prisma.user.create({
       data: {
         name: signupDto.name,
         email: signupDto.email,
@@ -38,5 +40,38 @@ export class AuthService {
         updatedAt: true,
       },
     });
+
+    return{
+      success:true,
+      statusCode:201,
+      message:'User created successfully',
+      data:user
+    }
+  }
+
+  async login(loginDto:LoginDto){
+    const user =await this.prisma.user.findUnique({
+      where:{
+        email:loginDto.email
+      }
+    })
+
+    if(!user){
+      throw new BadRequestException('Invalid email or password');
+    }
+
+    const isPasswordValid=await bcrypt.compare(loginDto.password,user.password)
+
+    if(!isPasswordValid){
+      throw new BadRequestException('Invalid email or password');
+    }
+
+    const {password, ...result}=user
+    return {
+      success:true,
+      statusCode:200,
+      message:'Login successful',
+      data:result
+    }
   }
 }
