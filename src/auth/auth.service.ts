@@ -1,18 +1,16 @@
-import 'dotenv/config';
-import { BadRequestException, Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { SignupDto } from './dto/signup.dto';
 import * as bcrypt from 'bcrypt';
-import { PrismaPg } from '@prisma/adapter-pg';
-import { PrismaClient } from '@prisma/client';
 import { LoginDto } from './dto/login.dto';
-
-const adapter = new PrismaPg({
-  connectionString: process.env.DATABASE_URL,
-});
+import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class AuthService {
-  private readonly prisma = new PrismaClient({ adapter });
+  constructor(private readonly prisma: PrismaService) {}
 
   async signup(signupDto: SignupDto) {
     const existingUser = await this.prisma.user.findUnique({
@@ -60,7 +58,7 @@ export class AuthService {
       throw new BadRequestException('Invalid email or password');
     }
 
-    if(user.loginBlockedUntil && user.loginBlockedUntil>new Date()){
+    if (user.loginBlockedUntil && user.loginBlockedUntil > new Date()) {
       throw new UnauthorizedException({
         success: false,
         statusCode: 429,
@@ -75,17 +73,18 @@ export class AuthService {
     );
 
     if (!isPasswordValid) {
-      const now =new Date();
-      const blockedUntill = new Date(now.getTime()+2*60*1000);
+      const now = new Date();
+      const blockedUntill = new Date(now.getTime() + 2 * 60 * 1000);
 
       await this.prisma.user.update({
-        where:{
-          email:loginDto.email
-        },data:{
+        where: {
+          email: loginDto.email,
+        },
+        data: {
           loginFailedCount: { increment: 1 },
-          loginBlockedUntil: blockedUntill
-        }
-      })
+          loginBlockedUntil: blockedUntill,
+        },
+      });
       throw new BadRequestException('Invalid email or password');
     }
 
@@ -99,18 +98,17 @@ export class AuthService {
         loginBlockedUntil: null,
         loginFailedCount: 0,
       },
-      select:{
-          id: true,
+      select: {
+        id: true,
         name: true,
         email: true,
         loginCount: true,
         lastLoginAt: true,
         createdAt: true,
         updatedAt: true,
-      }
+      },
     });
 
-  
     return {
       success: true,
       statusCode: 200,
