@@ -7,10 +7,14 @@ import { SignupDto } from './dto/signup.dto';
 import * as bcrypt from 'bcrypt';
 import { LoginDto } from './dto/login.dto';
 import { PrismaService } from '../prisma/prisma.service';
+import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class AuthService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly jwtService: JwtService,
+  ) {}
 
   async signup(signupDto: SignupDto) {
     const existingUser = await this.prisma.user.findUnique({
@@ -109,11 +113,47 @@ export class AuthService {
       },
     });
 
+    const payload = {
+      sub: updatedUser.id,
+      email: updatedUser.email,
+    };
+
+    const accessToken = this.jwtService.sign(payload);
+
     return {
       success: true,
       statusCode: 200,
       message: 'Login successful',
-      data: updatedUser,
+      data: { updatedUser, accessToken },
     };
+  }
+
+
+  async getProfile(userId:number){
+    const user=await this.prisma.user.findUnique({
+      where:{
+        id:userId
+      },
+      select:{
+        id:true,
+        name:true,
+        email:true,
+        loginCount:true,
+        lastLoginAt:true,
+        createdAt:true,
+        updatedAt:true
+      }
+    })
+
+    if(!user){
+      throw new UnauthorizedException('User no longer exixit')
+    }
+
+    return{
+      success:true,
+      statusCode:200,
+      message: 'Profile fetched successfully',
+      data:user
+    }
   }
 }
