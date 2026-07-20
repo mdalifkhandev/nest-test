@@ -16,6 +16,13 @@ const MAX_FAILED_ATTEMPTS = 5;
 const BLOCK_DURATION_MS = 15 * 60 * 1000;
 const BCRYPT_ROUNDS = 12;
 
+export interface GoogleUser {
+  googleId: string;
+  email: string;
+  name: string;
+  avatar: string | null;
+}
+
 @Injectable()
 export class AuthService {
   constructor(
@@ -236,6 +243,67 @@ export class AuthService {
       message: 'Profile fetched successfully',
       data: user,
     };
+  }
+
+  //_______________________________________________
+  //Google Login
+  //_______________________________________________
+
+  async findOrCreateGoogleUser(googleUser: GoogleUser) {
+    let user = await this.prisma.user.findUnique({
+      where: {
+        googleId: googleUser.googleId,
+      },
+    });
+
+    if (user) {
+      return user;
+    }
+
+    const existingUser = await this.prisma.user.findUnique({
+      where: {
+        email: googleUser.email,
+      },
+    });
+
+    if (existingUser) {
+      user = await this.prisma.user.update({
+        where: {
+          email: googleUser.email,
+        },
+        data: {
+          googleId: googleUser.googleId,
+          avatar: googleUser.avatar,
+        },
+      });
+      return user;
+    }
+
+    user = await this.prisma.user.create({
+      data: {
+        name: googleUser.name,
+        email: googleUser.email,
+        googleId: googleUser.googleId,
+        avatar: googleUser.avatar,
+        password: null,
+      },
+    });
+
+    return user;
+  }
+
+  async googleLogin(userId: number, email: string) {
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: {
+        loginCount: {
+          increment: 1,
+        },
+        lastLoginAt: new Date(),
+      },
+    });
+
+    return this.generateTokens(userId, email);
   }
 
   // ──────────────────────────────────────────────
