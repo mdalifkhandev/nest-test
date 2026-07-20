@@ -37,7 +37,7 @@ model RefreshToken {
 model Task {
     id          Int      @id @default(autoincrement())
     title       String
-    discription String
+    description String
     status      String   @default("pending")
     userId      Int
     createdAt   DateTime @default(now())

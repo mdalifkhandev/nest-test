@@ -124,7 +124,7 @@ export class AuthService {
       success: true,
       statusCode: 200,
       message: 'Login successful',
-      data: { updatedUser, ...tokens },
+      data: { user: updatedUser, ...tokens },
     };
   }
 
@@ -223,7 +223,7 @@ export class AuthService {
     });
 
     if (!user) {
-      throw new UnauthorizedException('User no longer exixit');
+      throw new UnauthorizedException('User no longer exists');
     }
 
     return {

@@ -5,16 +5,20 @@ import {
   HttpCode,
   HttpStatus,
   Post,
-  Req,
   UseGuards,
 } from '@nestjs/common';
+import {
+  ApiBearerAuth,
+  ApiOperation,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import { SignupDto } from './dto/signup.dto';
 import { LoginDto } from './dto/login.dto';
-import { JwtAuthGuard } from './guards/jwt-auth.guard';
-import type { AuthenticatedRequest, jwtPayload } from './guards/jwt-auth.guard';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
-import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { JwtAuthGuard } from './guards/jwt-auth.guard';
+import type { JwtPayload } from './guards/jwt-auth.guard';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 
 @ApiTags('Auth')
@@ -33,11 +37,12 @@ export class AuthController {
 
   @Post('login')
   @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Login with email and password' })
   @ApiResponse({ status: 200, description: 'Login successful' })
   @ApiResponse({ status: 401, description: 'Invalid credentials' })
   @ApiResponse({ status: 403, description: 'Account temporarily locked' })
-  login(@Body() loginDto: LoginDto) {
-    return this.authService.login(loginDto);
+  login(@Body() dto: LoginDto) {
+    return this.authService.login(dto);
   }
 
   @Post('refresh')
@@ -47,13 +52,13 @@ export class AuthController {
     return this.authService.refreshToken(dto.refreshToken);
   }
 
- @Post('logout')
+  @Post('logout')
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Logout from current device' })
   logout(
-    @CurrentUser() user: jwtPayload,
+    @CurrentUser() user: JwtPayload,
     @Body() dto: Partial<RefreshTokenDto>,
   ) {
     return this.authService.logout(user.sub, dto.refreshToken);
@@ -62,17 +67,17 @@ export class AuthController {
   @Post('logout-all')
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard)
-    @ApiBearerAuth()
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Logout from all devices' })
-  logoutAll(@Req() req: AuthenticatedRequest) {
-    return this.authService.logout(req.user.sub);
+  logoutAll(@CurrentUser() user: JwtPayload) {
+    return this.authService.logout(user.sub);
   }
 
   @Get('me')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Get current user profile' })
-  getProfile(@Req() request: AuthenticatedRequest) {
-    return this.authService.getProfile(request.user.sub);
+  getProfile(@CurrentUser('sub') userId: number) {
+    return this.authService.getProfile(userId);
   }
 }
