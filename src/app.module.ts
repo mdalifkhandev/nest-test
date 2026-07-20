@@ -9,6 +9,7 @@ import { envValidationSchema } from './config/env.validation';
 import { GlobalExceptionFilter } from './common/filters/global-exception.filter';
 import { ResponseInterceptor } from './common/interceptors/response.interceptor';
 import { winstonLogger } from './common/logger/winston.logger';
+import { TaskModule } from './task/task.module';
 
 @Module({
   imports: [
@@ -33,6 +34,7 @@ import { winstonLogger } from './common/logger/winston.logger';
 
     PrismaModule,
     AuthModule,
+    TaskModule,
   ],
   providers: [
     // Global rate limiting guard

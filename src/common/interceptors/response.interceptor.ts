@@ -23,7 +23,9 @@ export class ResponseInterceptor<T> implements NestInterceptor<
     context: ExecutionContext,
     next: CallHandler<T>,
   ): Observable<ApiResponse<T>> {
-    const statusCode = context.switchToHttp().getResponse<{ statusCode: number }>().statusCode;
+    const statusCode = context
+      .switchToHttp()
+      .getResponse<{ statusCode: number }>().statusCode;
 
     return next.handle().pipe(
       map((data) => {
