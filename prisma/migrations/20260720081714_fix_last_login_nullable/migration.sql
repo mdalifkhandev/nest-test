@@ -1,0 +1,3 @@
+-- AlterTable
+ALTER TABLE "User" ALTER COLUMN "lastLoginAt" DROP NOT NULL,
+ALTER COLUMN "lastLoginAt" DROP DEFAULT;

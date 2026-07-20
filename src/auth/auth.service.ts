@@ -93,7 +93,7 @@ export class AuthService {
     const isPasswordValid = await bcrypt.compare(dto.password, user.password);
 
     if (!isPasswordValid) {
-      await this.handleFaildLogin(user.id, user.loginFailedCount);
+      await this.handleFailedLogin(user.id, user.loginFailedCount);
       throw new UnauthorizedException('Invalid credentials');
     }
 
@@ -238,7 +238,7 @@ export class AuthService {
   // PRIVATE HELPERS
   // ──────────────────────────────────────────────
 
-  private async handleFaildLogin(userId: number, currentFailedCount: number) {
+  private async handleFailedLogin(userId: number, currentFailedCount: number) {
     const newFailedCount = currentFailedCount + 1;
     const shouldBlock = newFailedCount >= MAX_FAILED_ATTEMPTS;
 
@@ -266,13 +266,13 @@ export class AuthService {
 
     const rawRefreshToken = randomBytes(64).toString('hex');
 
-    const refreshexpiresAt = new Date(Date.now() + 7 * 24 * 60 * 1000);
+    const refreshExpiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
 
     await this.prisma.refreshToken.create({
       data: {
         token: rawRefreshToken,
         userId,
-        expiresAt: refreshexpiresAt,
+        expiresAt: refreshExpiresAt,
       },
     });
 
