@@ -1,51 +1,51 @@
 generator client {
-    provider = "prisma-client-js"
+  provider = "prisma-client-js"
 }
 
 datasource db {
-    provider = "postgresql"
+  provider = "postgresql"
 }
 
 model User {
-    id                Int       @id @default(autoincrement())
-    name              String
-    email             String    @unique
-    password          String?
-    googleId          String?   @unique
-    avatar            String?
-    lastLoginAt       DateTime?
-    loginCount        Int       @default(0)
-    loginFailedCount  Int       @default(0)
-    loginBlockedUntil DateTime?
-    createdAt         DateTime  @default(now())
-    updatedAt         DateTime  @updatedAt
+  id                Int       @id @default(autoincrement())
+  name              String
+  email             String    @unique
+  password          String?
+  googleId          String?   @unique
+  avatar            String?
+  lastLoginAt       DateTime?
+  loginCount        Int       @default(0)
+  loginFailedCount  Int       @default(0)
+  loginBlockedUntil DateTime?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
 
-    refreshTokens RefreshToken[]
-    tasks         Task[]
+  refreshTokens RefreshToken[]
+  tasks         Task[]
 }
 
 model RefreshToken {
-    id        Int      @id @default(autoincrement())
-    token     String   @unique
-    userId    Int
-    expiresAt DateTime
-    createdAt DateTime @default(now())
+  id        Int      @id @default(autoincrement())
+  token     String   @unique
+  userId    Int
+  expiresAt DateTime
+  createdAt DateTime @default(now())
 
-    user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-    @@index([userId])
+  @@index([userId])
 }
 
 model Task {
-    id          Int      @id @default(autoincrement())
-    title       String
-    description String
-    status      String   @default("pending")
-    userId      Int
-    createdAt   DateTime @default(now())
-    updatedAt   DateTime @updatedAt
+  id          Int      @id @default(autoincrement())
+  title       String
+  description String
+  status      String   @default("pending")
+  userId      Int
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
-    user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-    @@index([userId])
+  @@index([userId])
 }
