@@ -10,7 +10,9 @@ model User {
     id                Int       @id @default(autoincrement())
     name              String
     email             String    @unique
-    password          String
+    password          String?
+    googleId          String?   @unique
+    avatar            String?
     lastLoginAt       DateTime?
     loginCount        Int       @default(0)
     loginFailedCount  Int       @default(0)

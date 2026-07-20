@@ -9,6 +9,7 @@ import {
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
+  ApiBody,
   ApiOperation,
   ApiResponse,
   ApiTags,
@@ -57,11 +58,12 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Logout from current device' })
+  @ApiBody({ required: false, type: RefreshTokenDto })
   logout(
     @CurrentUser() user: JwtPayload,
-    @Body() dto: Partial<RefreshTokenDto>,
+    @Body() dto?: Partial<RefreshTokenDto>,
   ) {
-    return this.authService.logout(user.sub, dto.refreshToken);
+    return this.authService.logout(user.sub, dto?.refreshToken);
   }
 
   @Post('logout-all')
